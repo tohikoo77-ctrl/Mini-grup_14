@@ -60,7 +60,12 @@ class Client(models.Model):
 
 class Cart(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="carts")
-    "product = models.ForeignKey(Product, on_delete=models.CASCADE)"
+    product = models.ForeignKey(
+    Product,
+    on_delete=models.CASCADE,
+    null=True,
+    blank=True
+)
 
     quantity = models.IntegerField(default=1)
     price = models.DecimalField(max_digits=12, decimal_places=2)
