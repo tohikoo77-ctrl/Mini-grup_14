@@ -1,13 +1,14 @@
 from django.db import models
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from apps.product.models import Product
 
 
 class User(AbstractUser):
     ROLE_CHOICES = (
-        ('user', 'User'),
-        ('seller', 'Seller'),
-        ('admin', 'Admin'),
+        ("user", "User"),
+        ("seller", "Seller"),
+        ("admin", "Admin"),
     )
 
     first_name = models.CharField(max_length=30)
@@ -19,7 +20,7 @@ class User(AbstractUser):
 
     # avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
 
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="user")
     date_of_birth = models.DateField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,7 +28,7 @@ class User(AbstractUser):
 
 
 class Seller(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='seller')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="seller")
 
     name = models.CharField(max_length=30)
     phone = models.CharField(max_length=13)
@@ -41,14 +42,16 @@ class Seller(models.Model):
 
 
 class SellerWallet(models.Model):
-    seller = models.OneToOneField(Seller, on_delete=models.CASCADE, related_name='wallet')
+    seller = models.OneToOneField(
+        Seller, on_delete=models.CASCADE, related_name="wallet"
+    )
 
     amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     is_take = models.BooleanField(default=False)
 
 
 class Client(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='client')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="client")
 
     orders_count = models.IntegerField(default=0)
     returns_products_count = models.IntegerField(default=0)
@@ -59,7 +62,7 @@ class Client(models.Model):
 
 
 class Cart(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='carts')
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="carts")
     "product = models.ForeignKey(Product, on_delete=models.CASCADE)"
 
     quantity = models.IntegerField(default=1)
@@ -67,8 +70,11 @@ class Cart(models.Model):
 
 
 class Favorite(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='favorites')
-    "product = models.ForeignKey(Product, on_delete=models.CASCADE)"
+    client = models.ForeignKey(
+        Client, on_delete=models.CASCADE, related_name="favorites"
+    )
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=50)
