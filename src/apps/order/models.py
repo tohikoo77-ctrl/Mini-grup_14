@@ -9,11 +9,13 @@ class OrderStatus(models.TextChoices):
     SENT_TO_FARGO = "sent_to_fargo", "Buyurtma fargo punktga topshirildi"
     DELIVERED = "delivered", "Buyurtma mijozga topshirildi"
     RETURNED = "returned", "Buyurtma qaytarildi"
-    AT_FARGO = "at_fargo", "Buyurtma fargo punktida"
     TO_REGION = "to_region", "Viloyatga yuborilmoqda"
     REGION_RECEIVED = "region_received", "Viloyat punktga topshirildi"
     TO_CLIENT = "to_client", "Mijozga yuborilmoqda"
     FAILED_CALL = "failed_call", "Kuryer mijoz bilan boglana olmadi"
+
+
+
 
 
 class PaymentType(models.TextChoices):
@@ -24,6 +26,7 @@ class PaymentType(models.TextChoices):
 
 
 class Address(models.Model):
+    order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="addresses")
     in_tashkent = models.BooleanField(default=True)
     address_name = models.CharField(max_length=255)
     longitude = models.DecimalField(
@@ -43,7 +46,7 @@ class Address(models.Model):
 class Order(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="orders")
     address = models.ForeignKey(
-        Address, on_delete=models.CASCADE, related_name="orders"
+        Address, on_delete=models.CASCADE, related_name="orders", null=True, blank=True
     )
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(
@@ -67,3 +70,4 @@ class OrderProduct(models.Model):
 
     def __str__(self):
         return f"{self.order} - {self.product} (x{self.quantity})"
+
