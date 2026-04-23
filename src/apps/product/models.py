@@ -54,3 +54,19 @@ class ComboProduct(models.Model):
 
     def __str__(self):
         return self.combo.name
+
+
+class Promocode(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="promocode"
+    )
+    discount_int = models.CharField(max_length=3,unique=True,blank=True)
+    discount_per = models.CharField(max_length=2 , unique=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return F"{self.discount_int}  | {self.discount_per}"
+
+class News(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="news"
+    )
