@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -12,15 +14,17 @@ class OrderProductSerializer(serializers.ModelSerializer):
         model = OrderProduct
         fields = ['id', 'product', 'quantity', 'price']
 
-    def validate_quantity(self, value):
-        if value <= 0:
-            raise ValidationError("Quantity 0 dan katta bo‘lishi kerak")
-        return value
+    def validate(self, attrs):
+        quantity = attrs.get('quantity', 0)
+        price = attrs.get('price', 0)
 
-    def validate_price(self, value):
-        if value <= 0:
-            raise ValidationError("Price 0 dan katta bo‘lishi kerak")
-        return value
+        if quantity <= 0:
+            raise ValidationError({"quantity": "Quantity 0 dan katta bo‘lishi kerak"})
+
+        if price <= 0:
+            raise ValidationError({"price": "Price 0 dan katta bo‘lishi kerak"})
+
+        return attrs
 
 
 # ---------------------------
@@ -42,7 +46,7 @@ class AddressSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------
-# ORDER (FULL LOGIC)
+# ORDER
 # ---------------------------
 class OrderSerializer(serializers.ModelSerializer):
     products = OrderProductSerializer(many=True, required=False)
@@ -61,7 +65,16 @@ class OrderSerializer(serializers.ModelSerializer):
             'created_at',
             'products',
         ]
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'total_price']
+
+    # ---------------- PRIVATE METHOD ----------------
+    def _calculate_total_price(self, products_data):
+        total = Decimal("0")
+        for item in products_data:
+            price = Decimal(item.get('price', 0))
+            quantity = item.get('quantity', 1)
+            total += price * quantity
+        return total
 
     # ---------------- CREATE ----------------
     def create(self, validated_data):
@@ -71,17 +84,15 @@ class OrderSerializer(serializers.ModelSerializer):
         order = Order.objects.create(**validated_data)
 
         # products
-        total_price = 0
         for product_data in products_data:
             OrderProduct.objects.create(order=order, **product_data)
-            total_price += float(product_data.get('price', 0)) * product_data.get('quantity', 1)
 
         # address
         if address_data:
             Address.objects.create(order=order, **address_data)
 
-        # update total price
-        order.total_price = total_price
+        # total price
+        order.total_price = self._calculate_total_price(products_data)
         order.save()
 
         return order
@@ -91,22 +102,18 @@ class OrderSerializer(serializers.ModelSerializer):
         products_data = validated_data.pop('products', None)
         address_data = validated_data.pop('address', None)
 
-        # update order fields
+        # update fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        instance.save()
 
         # update products
         if products_data is not None:
             instance.products.all().delete()
 
-            total_price = 0
             for product_data in products_data:
                 OrderProduct.objects.create(order=instance, **product_data)
-                total_price += float(product_data.get('price', 0)) * product_data.get('quantity', 1)
 
-            instance.total_price = total_price
-            instance.save()
+            instance.total_price = self._calculate_total_price(products_data)
 
         # update address
         if address_data is not None:
@@ -115,4 +122,5 @@ class OrderSerializer(serializers.ModelSerializer):
                 defaults=address_data
             )
 
+        instance.save()
         return instance
