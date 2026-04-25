@@ -45,10 +45,7 @@ class Address(models.Model):
 
 class Order(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="orders")
-    address = models.ForeignKey(
-        Address, on_delete=models.CASCADE, related_name="orders", null=True, blank=True
-    )
-    total_price = models.DecimalField(max_digits=12, decimal_places=2)
+    total_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status = models.CharField(
         max_length=30, choices=OrderStatus.choices, default=OrderStatus.CREATED
     )
@@ -70,4 +67,3 @@ class OrderProduct(models.Model):
 
     def __str__(self):
         return f"{self.order} - {self.product} (x{self.quantity})"
-

@@ -45,6 +45,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "is_sale",
             "stock",
             "is_active",
+            "image",
             "created_at",
             "category",
             "category_id",
@@ -118,15 +119,6 @@ class PromocodeSerializer(serializers.ModelSerializer):
         if value < 0 or value > 100:
             raise serializers.ValidationError("Discount 0-100 oralig‘ida bo‘lishi kerak.")
         return value
-
-    def validate(self, attrs):
-        min_price = attrs.get("min_price")
-
-        if min_price is not None and min_price < 0:
-            raise serializers.ValidationError("Min price manfiy bo‘lishi mumkin emas.")
-
-        return attrs
-
 
 # =========================
 # NEWS SERIALIZER

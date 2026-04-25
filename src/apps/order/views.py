@@ -15,8 +15,10 @@ class OrderModelView(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Order.objects.filter(client=user)
+        return Order.objects.filter(client__user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(client=self.request.user.client)
 
 
 class OrderProductModelView(ModelViewSet):
@@ -24,8 +26,14 @@ class OrderProductModelView(ModelViewSet):
     serializer_class = OrderProductSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return OrderProduct.objects.filter(order__client=self.request.user)
+
 
 class AddressModelView(ModelViewSet):
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Address.objects.filter(order__client=self.request.user)

@@ -43,11 +43,13 @@ class ProductViewSet(ModelViewSet):
         min_price = self.request.query_params.get("min_price")
         max_price = self.request.query_params.get("max_price")
 
-        if min_price:
-            queryset = queryset.filter(price__gte=min_price)
-
-        if max_price:
-            queryset = queryset.filter(price__lte=max_price)
+        try:
+            if min_price:
+                queryset = queryset.filter(price__gte=float(min_price))
+            if max_price:
+                queryset = queryset.filter(price__lte=float(max_price))
+        except ValueError:
+            pass # Ignore invalid numeric inputs
 
         return queryset
 
@@ -56,7 +58,7 @@ class ProductViewSet(ModelViewSet):
 # COMBO PRODUCT VIEWSET
 # =========================
 class ComboProductViewSet(ModelViewSet):
-    queryset = ComboProduct.objects.prefetch_related("products").all()
+    queryset = ComboProduct.objects.select_related("combo", "item").all()
     serializer_class = ComboProductSerializer
 
     filter_backends = [SearchFilter, OrderingFilter]
