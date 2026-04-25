@@ -3,7 +3,7 @@ from django.db import models
 
 class Category(models.Model):
     name = models.CharField(max_length=30)
-    description = models.TextField(blank=True, null=True)  # FIX
+    description = models.TextField(blank=True, null=True)
     parent = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -12,6 +12,7 @@ class Category(models.Model):
         related_name="children"
     )
     is_active = models.BooleanField(default=True)
+
     def __str__(self):
         return self.name
 
@@ -24,7 +25,7 @@ class Product(models.Model):
     )
 
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)  # FIX
+    description = models.TextField(blank=True, null=True)
 
     price = models.DecimalField(max_digits=12, decimal_places=2)
     old_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -35,7 +36,7 @@ class Product(models.Model):
 
     stock = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
-
+    #image = models.ImageField(upload_to="products/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -61,13 +62,17 @@ class Promocode(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="promocode"
     )
-    discount_int = models.CharField(max_length=3,unique=True,blank=True)
-    discount_per = models.CharField(max_length=2 , unique=True,blank=True)
+    code = models.CharField(max_length=50, unique=True)
+    discount = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return F"{self.discount_int}  | {self.discount_per}"
+        return f"{self.code} ({self.discount}%)"
 
 class News(models.Model):
-    product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="news"
-    )
+    title = models.CharField(max_length=255)
+    body = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    is_active = models.BooleanField(default=True) 

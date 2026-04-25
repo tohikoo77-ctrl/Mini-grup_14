@@ -57,15 +57,15 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'client',
-            'address',
             'total_price',
             'status',
             'payment_type',
             'is_active',
             'created_at',
             'products',
+            'address',
         ]
-        read_only_fields = ['id', 'created_at', 'total_price']
+        read_only_fields = ['id', 'client', 'created_at', 'total_price']
 
     # ---------------- PRIVATE METHOD ----------------
     def _calculate_total_price(self, products_data):
@@ -116,7 +116,7 @@ class OrderSerializer(serializers.ModelSerializer):
             instance.total_price = self._calculate_total_price(products_data)
 
         # update address
-        if address_data is not None:
+        if address_data:
             Address.objects.update_or_create(
                 order=instance,
                 defaults=address_data
