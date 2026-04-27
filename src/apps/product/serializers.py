@@ -1,27 +1,17 @@
 from rest_framework import serializers
-from .models import *
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = '__all__'
+from .models import Product
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
 
-class ComboProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ComboProduct
-        fields = '__all__'
+    def validate_price(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Narx manfiy yoki nol bo'lishi mumkin emas!")
+        return value
 
-class PromocodeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Promocode
-        fields = '__all__'
-
-class NewsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = News
-        fields = '__all__'
+    def validate_sku(self, value):
+        if len(value) < 4:
+            raise serializers.ValidationError("SKU kodi kamida 4 ta belgidan iborat bo'lishi shart.")
+        return value
