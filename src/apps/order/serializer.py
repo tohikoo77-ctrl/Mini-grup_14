@@ -14,12 +14,12 @@ class OrderProductSerializer(serializers.ModelSerializer):
 
     def validate_quantity(self, value):
         if value <= 0:
-            raise ValidationError("Quantity 0 dan katta bo‘lishi kerak")
+            raise ValidationError("Quantity 0 dan katta bo`lishi kerak")
         return value
 
     def validate_price(self, value):
         if value <= 0:
-            raise ValidationError("Price 0 dan katta bo‘lishi kerak")
+            raise ValidationError("Price 0 dan katta bo`lishi kerak")
         return value
 
 

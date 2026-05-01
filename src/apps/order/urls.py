@@ -6,9 +6,9 @@ from . import views
 
 router = DefaultRouter()
 
-router.register(r'orders', views.OrderModelView, basename='orders')
-router.register(r'order-products', views.OrderProductModelView, basename='order-products')
-router.register(r'addresses', views.AddressModelView, basename='addresses')
+router.register(r'orders', views.OrderViewSet, basename='orders')
+router.register(r'order-products', views.OrderProductViewSet, basename='order-products')
+router.register(r'addresses', views.AddressViewSet, basename='addresses')
 
 
 urlpatterns = [

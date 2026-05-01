@@ -9,23 +9,31 @@ from .serializer import (
 )
 
 
-class OrderModelView(ModelViewSet):
-    queryset = Order.objects.all()
+class OrderViewSet(ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Order.objects.filter(client=user)
+        return Order.objects.filter(client=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(client=self.request.user)
 
 
-class OrderProductModelView(ModelViewSet):
-    queryset = OrderProduct.objects.all()
+class OrderProductViewSet(ModelViewSet):
     serializer_class = OrderProductSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return OrderProduct.objects.filter(order__client=self.request.user)
 
-class AddressModelView(ModelViewSet):
-    queryset = Address.objects.all()
+
+class AddressViewSet(ModelViewSet):
     serializer_class = AddressSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Address.objects.filter(client=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(client=self.request.user)
