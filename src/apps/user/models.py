@@ -2,7 +2,7 @@ from django.db import models
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from apps.product.models import Product
-
+from django.core.exceptions import ValidationError
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -23,6 +23,9 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def clean(self):
+        if not self.phone_number.startswith("+"):
+            raise ValidationError("Phone must start with +")
 
 class Seller(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="seller")
