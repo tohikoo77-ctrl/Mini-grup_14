@@ -16,6 +16,7 @@ router.register('lead-status', LeadStatusViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path("register/", RegisterView.as_view()),
-    path("login/", LoginView.as_view()),
+    path('auth/register/', RegisterAPIView.as_view(), name='register'),
+    path('auth/verify/', VerifyCodeAPIView.as_view(), name='verify-code'),
+    path('auth/resend-code/', ResendVerificationAPIView.as_view(), name='resend-verification'),
 ]
