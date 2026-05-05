@@ -7,7 +7,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.product.models import Product
-
+from django.core.exceptions import ValidationError
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -30,6 +30,9 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def clean(self):
+        if not self.phone_number.startswith("+"):
+            raise ValidationError("Phone must start with +")
 
 class EmailVerificationCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="verification_codes")

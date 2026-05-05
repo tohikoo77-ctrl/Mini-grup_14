@@ -128,6 +128,23 @@ class ResendVerificationAPIView(APIView):
         )
 
 
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+
+
+class LoginView(generics.GenericAPIView):
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+        user = authenticate(
+            username=request.data["username"],
+            password=request.data["password"]
+        )
+
+        if user:
+            return Response({"message": "Login successful"})
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -166,3 +183,10 @@ class TagViewSet(ModelViewSet):
 class LeadStatusViewSet(ModelViewSet):
     queryset = LeadStatus.objects.all()
     serializer_class = LeadStatusSerializer
+
+
+class SellerView(APIView):
+    permission_classes = [IsSeller]
+
+    def get(self, request):
+        return Response({"message": "Only sellers can see this"})

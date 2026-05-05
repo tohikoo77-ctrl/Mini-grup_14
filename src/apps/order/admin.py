@@ -1,13 +1,21 @@
 from django.contrib import admin
 from .models import Order, Address, OrderProduct
 
+class OrderProductInline(admin.TabularInline):
+    model = OrderProduct
+    extra = 0
+
+class AddressInline(admin.StackedInline):
+    model = Address
+    extra = 0
+    max_num = 1
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    inlines = [OrderProductInline, AddressInline]
     list_display = (
         'id',
         'client',
-        'address',
         'total_price',
         'status',
         'payment_type',
@@ -16,7 +24,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     search_fields = (
         'client__username',
-        'address__address_name',
+        'addresses__address_name',
         'status',
     )
 
