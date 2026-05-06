@@ -193,3 +193,76 @@ class SellerView(APIView):
 
     def get(self, request):
         return Response({"message": "Only sellers can see this"})
+    
+from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def login_view(request):
+    data = json.loads(request.body)
+
+    username = data.get("username")
+    password = data.get("password")
+
+    user = authenticate(username=username, password=password)
+
+    if user is not None:
+        login(request, user)
+        return JsonResponse({"message": "Login success"})
+    else:
+        return JsonResponse({"error": "Invalid credentials"}, status=400)
+    
+from django.contrib.auth import logout
+
+def logout_view(request):
+    logout(request)
+    return JsonResponse({"message": "Logged out"})
+
+
+@csrf_exempt
+def forget_password(request):
+    data = json.loads(request.body)
+    username = data.get("username")
+
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found"}, status=404)
+
+    code = EmailVerificationCode.objects.create(user=user)
+
+    # bu yerda email/telegram yuborish mumkin
+    print("OTP:", code.code)
+
+    return JsonResponse({"message": "OTP sent"})
+
+@csrf_exempt
+def reset_password(request):
+    data = json.loads(request.body)
+
+    username = data.get("username")
+    code = data.get("code")
+    new_password = data.get("new_password")
+
+    try:
+        user = User.objects.get(username=username)
+        otp = EmailVerificationCode.objects.filter(
+            user=user,
+            code=code,
+            is_used=False
+        ).latest("created_at")
+    except:
+        return JsonResponse({"error": "Invalid code"}, status=400)
+
+    if otp.expires_at < timezone.now():
+        return JsonResponse({"error": "Code expired"}, status=400)
+
+    user.set_password(new_password)
+    user.save()
+
+    otp.is_used = True
+    otp.save()
+
+    return JsonResponse({"message": "Password reset successful"})
