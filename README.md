@@ -66,3 +66,4 @@ Key variables:
 - `DJANGO_ALLOWED_HOSTS` - Comma-separated list of allowed hosts
 - `DB_*` - Database configuration (PostgreSQL)
 - `DJANGO_EMAIL_*` - Email service configuration
+   
