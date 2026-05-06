@@ -7,9 +7,6 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo Changing to src directory...
-cd src
-
 echo Starting Django development server...
 python manage.py runserver
 

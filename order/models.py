@@ -1,5 +1,5 @@
 from django.db import models
-from apps.user.models import Client
+from user.models import Client
 
 
 class OrderStatus(models.TextChoices):

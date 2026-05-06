@@ -38,7 +38,6 @@ cp .env.example .env
 
 ### 6. Run Migrations
 ```bash
-cd src
 python manage.py migrate
 ```
 
@@ -49,7 +48,6 @@ python manage.py createsuperuser
 
 ### 8. Run Development Server
 ```bash
-cd src
 python manage.py runserver
 ```
 
