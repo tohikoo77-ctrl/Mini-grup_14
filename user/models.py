@@ -6,7 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
-from apps.product.models import Product
+from product.models import Product
 from django.core.exceptions import ValidationError
 
 class User(AbstractUser):

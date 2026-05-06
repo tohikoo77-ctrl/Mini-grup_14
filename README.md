@@ -4,23 +4,30 @@
 
 ### 1. Prerequisites
 - Python 3.10+
-- PostgreSQL (optional, SQLite is default)
-- pip or pip3
+- pip
 
 ### 2. Create Virtual Environment
 ```bash
 python -m venv venv
-source venv/Scripts/activate  # On Windows
-# or
-source venv/bin/activate  # On macOS/Linux
 ```
 
-### 3. Install Dependencies
+### 3. Activate Virtual Environment
+**Windows:**
 ```bash
-pip install -r src/requirements.txt
+venv\Scripts\activate
 ```
 
-### 4. Configure Environment Variables
+**macOS/Linux:**
+```bash
+source venv/bin/activate
+```
+
+### 4. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Configure Environment Variables
 ```bash
 # Copy the example environment file
 cp .env.example .env
@@ -29,24 +36,32 @@ cp .env.example .env
 # Default settings in .env work for local SQLite development
 ```
 
-### 5. Run Migrations
+### 6. Run Migrations
 ```bash
-cd src
 python manage.py migrate
 ```
 
-### 6. Create Superuser (Optional)
+### 7. Create Superuser (Optional)
 ```bash
 python manage.py createsuperuser
 ```
 
-### 7. Run Development Server
+### 8. Run Development Server
 ```bash
-cd src
 python manage.py runserver
 ```
 
-The server will be available at `http://localhost:8000`
+**Quick Start (Windows):**
+```bash
+run_server.bat
+```
+
+**Quick Start (macOS/Linux):**
+```bash
+./run_server.sh
+```
+
+The server will be available at `http://127.0.0.1:8000`
 
 ## Docker Setup
 
@@ -61,9 +76,11 @@ docker-compose up -d
 All configuration is managed through environment variables defined in `.env`. See `.env.example` for all available options.
 
 Key variables:
-- `DJANGO_DEBUG` - Enable debug mode (set to `False` in production)
-- `DJANGO_SECRET_KEY` - Django secret key (change in production)
-- `DJANGO_ALLOWED_HOSTS` - Comma-separated list of allowed hosts
-- `DB_*` - Database configuration (PostgreSQL)
-- `DJANGO_EMAIL_*` - Email service configuration
+- `SECRET_KEY` - Django secret key (change in production)
+- `DEBUG` - Enable debug mode (set to `False` in production)
+- `ALLOWED_HOSTS` - Comma-separated list of allowed hosts
+- `DATABASE_URL` - Database connection URL (SQLite or PostgreSQL)
+- `CORS_ALLOWED_ORIGINS` - Allowed CORS origins
+- `CSRF_TRUSTED_ORIGINS` - Trusted CSRF origins
+- `EMAIL_HOST` - SMTP server for email
    
