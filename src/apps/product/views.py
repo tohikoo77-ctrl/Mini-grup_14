@@ -11,45 +11,44 @@ from .serializers import (
     NewsSerializer
 )
 
+from .serializers import CategorySerializer, ProductSerializer
+
 
 # =========================
 # CATEGORY VIEWSET
 # =========================
 class CategoryViewSet(ModelViewSet):
-    queryset = Category.objects.all()
+    queryset = Category.objects.filter(is_active=True)
     serializer_class = CategorySerializer
 
-    filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ["name"]
-    ordering_fields = ["id", "name"]
-
 
 # =========================
-# PRODUCT VIEWSET (ADVANCED)
+# PRODUCT VIEWSET + FILTER
 # =========================
 class ProductViewSet(ModelViewSet):
-    queryset = Product.objects.select_related("category").all()
+    queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
-
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["is_active", "is_new", "is_sale", "is_hit", "category"]
-    search_fields = ["name", "description"]
-    ordering_fields = ["price", "created_at"]
 
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        # custom filtering (optional advanced logic)
+        # filters
+        category = self.request.query_params.get("category")
+        search = self.request.query_params.get("search")
         min_price = self.request.query_params.get("min_price")
         max_price = self.request.query_params.get("max_price")
 
-        try:
-            if min_price:
-                queryset = queryset.filter(price__gte=float(min_price))
-            if max_price:
-                queryset = queryset.filter(price__lte=float(max_price))
-        except ValueError:
-            pass # Ignore invalid numeric inputs
+        if category:
+            queryset = queryset.filter(category_id=category)
+
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
 
         return queryset
 

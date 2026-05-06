@@ -3,30 +3,16 @@ from .models import Category, Product, ComboProduct, Promocode, News
 
 
 # =========================
-# CATEGORY SERIALIZER
+# CATEGORY
 # =========================
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["id", "name", "parent", "is_active"]
-
-    def validate_name(self, value):
-        if len(value) < 2:
-            raise serializers.ValidationError("Kategoriya nomi kamida 2 ta harf bo‘lishi kerak.")
-        return value
-
-    def validate(self, attrs):
-        parent = attrs.get("parent")
-        name = attrs.get("name")
-
-        if parent and parent.name == name:
-            raise serializers.ValidationError("Kategoriya o‘zining parenti bo‘la olmaydi.")
-
-        return attrs
+        fields = ["id", "name", "is_active"]
 
 
 # =========================
-# PRODUCT SERIALIZER
+# PRODUCT
 # =========================
 class ProductSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
@@ -40,54 +26,33 @@ class ProductSerializer(serializers.ModelSerializer):
             "description",
             "price",
             "old_price",
-            "is_hit",
             "is_new",
             "is_sale",
+            "is_hit",
             "stock",
             "is_active",
-            "image",
             "created_at",
             "category",
             "category_id",
         ]
 
-    # name validation
-    def validate_name(self, value):
-        if len(value) < 3:
-            raise serializers.ValidationError("Product nomi kamida 3 ta harf bo‘lishi kerak.")
-        return value
-
-    # price validation
-    def validate_price(self, value):
-        if value <= 0:
-            raise serializers.ValidationError("Narx 0 dan katta bo‘lishi kerak.")
-        return value
-
-    # stock validation
-    def validate_stock(self, value):
-        if value < 0:
-            raise serializers.ValidationError("Stock manfiy bo‘lishi mumkin emas.")
-        return value
-
-    # global validation
-    def validate(self, attrs):
-        price = attrs.get("price")
-        old_price = attrs.get("old_price")
-
-        if old_price and old_price < price:
-            raise serializers.ValidationError("Old price yangi narxdan kichik bo‘lishi mumkin emas.")
-
-        if attrs.get("is_sale") and not old_price:
-            raise serializers.ValidationError("Sale bo‘lsa old_price bo‘lishi shart.")
-
-        return attrs
-
-    # create logic
+    # create
     def create(self, validated_data):
         category_id = validated_data.pop("category_id")
         return Product.objects.create(category_id=category_id, **validated_data)
 
+    # update
+    def update(self, instance, validated_data):
+        category_id = validated_data.pop("category_id", None)
 
+        if category_id:
+            instance.category_id = category_id
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 # =========================
 # COMBO PRODUCT SERIALIZER
 # =========================
