@@ -7,6 +7,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from drf_spectacular.utils import extend_schema
 
 from .models import (
     Cart,
@@ -54,6 +55,11 @@ def send_verification_email(user, code):
 
 
 class RegisterAPIView(APIView):
+    @extend_schema(
+        request=RegisterSerializer,
+        responses={201: {"description": "User registered successfully"}},
+        description="Register a new user account",
+    )
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -71,6 +77,11 @@ class RegisterAPIView(APIView):
 
 
 class VerifyCodeAPIView(APIView):
+    @extend_schema(
+        request=VerifyCodeSerializer,
+        responses={200: {"description": "Email verified successfully"}},
+        description="Verify user email with verification code",
+    )
     def post(self, request):
         serializer = VerifyCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -106,6 +117,11 @@ class VerifyCodeAPIView(APIView):
 
 
 class ResendVerificationAPIView(APIView):
+    @extend_schema(
+        request=ResendVerificationSerializer,
+        responses={200: {"description": "Verification code sent successfully"}},
+        description="Resend email verification code",
+    )
     def post(self, request):
         serializer = ResendVerificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -191,6 +207,10 @@ class LeadStatusViewSet(ModelViewSet):
 class SellerView(APIView):
     permission_classes = [IsSeller]
 
+    @extend_schema(
+        responses={200: {"description": "Seller dashboard access granted"}},
+        description="Access seller-only content",
+    )
     def get(self, request):
         return Response({"message": "Only sellers can see this"})
     
