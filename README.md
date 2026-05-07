@@ -63,6 +63,20 @@ run_server.bat
 
 The server will be available at `http://127.0.0.1:8000`
 
+## API Documentation (Swagger)
+
+After starting the server, you can access the API documentation at:
+
+- **Swagger UI**: `http://127.0.0.1:8000/api/schema/swagger-ui/`
+- **ReDoc**: `http://127.0.0.1:8000/api/schema/redoc/`
+- **OpenAPI Schema**: `http://127.0.0.1:8000/api/schema/`
+
+### Authentication
+To test authenticated endpoints in Swagger:
+1. Get an access token from the authentication endpoints
+2. Click "Authorize" button in Swagger UI
+3. Enter: `Bearer <your_access_token>`
+
 ## Docker Setup
 
 If you prefer to use Docker:

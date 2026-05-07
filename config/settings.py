@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     
     'corsheaders',
     "rest_framework",
+    'drf_spectacular',
     "product",
     "user",
     "order",]
@@ -102,7 +103,8 @@ AUTH_PASSWORD_VALIDATORS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 
@@ -151,6 +153,28 @@ SIMPLE_JWT = {
     "CHECK_REVOKE_TOKEN": False,
     "REVOKE_TOKEN_CLAIM": "hash_password",
     "CHECK_USER_IS_ACTIVE": True,
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Mini-grup_14 API',
+    'DESCRIPTION': 'API documentation for Mini-grup_14 project',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SECURITY': [
+        {
+            'Bearer': {
+                'type': 'apiKey',
+                'name': 'Authorization',
+                'in': 'header',
+            }
+        }
+    ],
+    'SECURITY_REQUIREMENTS': [
+        {
+            'Bearer': [],
+        }
+    ],
 }
 
 # Internationalization
