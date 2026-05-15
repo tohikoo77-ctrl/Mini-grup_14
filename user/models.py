@@ -1,7 +1,12 @@
-from django.db import models
-from django.db import models
+import random
+import string
+from datetime import timedelta
+
 from django.contrib.auth.models import AbstractUser
-from apps.product.models import Product
+from django.db import models
+from django.utils import timezone
+
+from product.models import Product
 from django.core.exceptions import ValidationError
 
 class User(AbstractUser):
@@ -20,12 +25,39 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="user")
     date_of_birth = models.DateField(blank=True, null=True)
 
+    is_verified = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def clean(self):
         if not self.phone_number.startswith("+"):
             raise ValidationError("Phone must start with +")
+
+class EmailVerificationCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="verification_codes")
+    code = models.CharField(max_length=6, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = self.generate_code()
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(hours=24)
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def generate_code():
+        return "".join(random.choices(string.digits, k=6))
+
+    def __str__(self):
+        return f"{self.user.email} - {self.code}"
+
 
 class Seller(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="seller")
@@ -64,11 +96,11 @@ class Client(models.Model):
 class Cart(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="carts")
     product = models.ForeignKey(
-    Product,
-    on_delete=models.CASCADE,
-    null=True,
-    blank=True
-)
+        Product,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     quantity = models.IntegerField(default=1)
     price = models.DecimalField(max_digits=12, decimal_places=2)
