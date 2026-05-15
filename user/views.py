@@ -236,6 +236,7 @@ def login_view(request):
     
 from django.contrib.auth import logout
 
+@csrf_exempt
 def logout_view(request):
     logout(request)
     return JsonResponse({"message": "Logged out"})
