@@ -1,9 +1,10 @@
 from django.conf import settings
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -25,13 +26,17 @@ from .serializers import (
     CartSerializer,
     ClientSerializer,
     FavoriteSerializer,
+    ForgetPasswordSerializer,
     LeadStatusSerializer,
     LoginSerializer,
+    PasswordUpdateSerializer,
     RegisterSerializer,
     ResendVerificationSerializer,
+    ResetPasswordSerializer,
     SellerSerializer,
     SellerWalletSerializer,
     TagSerializer,
+    UserProfileUpdateSerializer,
     UserSerializer,
     VerifyCodeSerializer,
 )
@@ -48,10 +53,16 @@ def send_verification_email(user, code):
     send_mail(
         subject,
         message,
-        settings.DEFAULT_FROM_EMAIL,
+        getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
         [user.email],
-        fail_silently=False,
+        fail_silently=True,
     )
+
+
+def find_user_for_password_reset(validated_data):
+    if validated_data.get("email"):
+        return get_object_or_404(User, email=validated_data["email"])
+    return get_object_or_404(User, username=validated_data["username"])
 
 
 class RegisterAPIView(APIView):
@@ -71,6 +82,7 @@ class RegisterAPIView(APIView):
             {
                 "detail": "Registered successfully. Check your email for the verification code.",
                 "email": user.email,
+                "verification_code": verification.code,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -142,7 +154,123 @@ class ResendVerificationAPIView(APIView):
             {
                 "detail": "A new verification code was sent to your email.",
                 "email": user.email,
+                "verification_code": verification.code,
             },
+            status=status.HTTP_200_OK,
+        )
+
+
+class UserProfileAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={200: UserProfileUpdateSerializer},
+        description="Get current authenticated user profile",
+    )
+    def get(self, request):
+        serializer = UserProfileUpdateSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=UserProfileUpdateSerializer,
+        responses={200: UserProfileUpdateSerializer},
+        description="Update current authenticated user profile information",
+    )
+    def patch(self, request):
+        serializer = UserProfileUpdateSerializer(
+            request.user,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {
+                "detail": "User profile updated successfully.",
+                "user": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=PasswordUpdateSerializer,
+        responses={200: {"description": "Password updated successfully"}},
+        description="Update current authenticated user's password",
+    )
+    def post(self, request):
+        serializer = PasswordUpdateSerializer(
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"detail": "Password updated successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class ForgetPasswordAPIView(APIView):
+    @extend_schema(
+        request=ForgetPasswordSerializer,
+        responses={200: {"description": "Password reset code sent"}},
+        description="Create and send password reset code",
+    )
+    def post(self, request):
+        serializer = ForgetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = find_user_for_password_reset(serializer.validated_data)
+
+        verification = EmailVerificationCode.objects.create(user=user)
+        send_verification_email(user, verification.code)
+
+        return Response(
+            {
+                "detail": "Password reset code sent.",
+                "username": user.username,
+                "email": user.email,
+                "reset_code": verification.code,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ResetPasswordAPIView(APIView):
+    @extend_schema(
+        request=ResetPasswordSerializer,
+        responses={200: {"description": "Password reset successfully"}},
+        description="Reset user password by reset code",
+    )
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = find_user_for_password_reset(serializer.validated_data)
+
+        verification = EmailVerificationCode.objects.filter(
+            user=user,
+            code=serializer.validated_data["code"],
+            is_used=False,
+            expires_at__gte=timezone.now(),
+        ).first()
+
+        if not verification:
+            return Response(
+                {"detail": "Invalid or expired code."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(serializer.validated_data["new_password"])
+        user.save(update_fields=["password"])
+
+        verification.is_used = True
+        verification.save(update_fields=["is_used"])
+
+        return Response(
+            {"detail": "Password reset successful."},
             status=status.HTTP_200_OK,
         )
 
@@ -214,7 +342,6 @@ class SellerView(APIView):
     def get(self, request):
         return Response({"message": "Only sellers can see this"})
     
-from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -234,8 +361,6 @@ def login_view(request):
     else:
         return JsonResponse({"error": "Invalid credentials"}, status=400)
     
-from django.contrib.auth import logout
-
 @csrf_exempt
 def logout_view(request):
     logout(request)
@@ -244,46 +369,42 @@ def logout_view(request):
 
 @csrf_exempt
 def forget_password(request):
-    data = json.loads(request.body)
-    username = data.get("username")
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return JsonResponse({"error": "User not found"}, status=404)
-
+    data = json.loads(request.body or "{}")
+    serializer = ForgetPasswordSerializer(data=data)
+    if not serializer.is_valid():
+        return JsonResponse(serializer.errors, status=400)
+    user = find_user_for_password_reset(serializer.validated_data)
     code = EmailVerificationCode.objects.create(user=user)
-
-    # bu yerda email/telegram yuborish mumkin
-    print("OTP:", code.code)
-
-    return JsonResponse({"message": "OTP sent"})
+    send_verification_email(user, code.code)
+    return JsonResponse(
+        {
+            "message": "Password reset code sent",
+            "username": user.username,
+            "email": user.email,
+            "reset_code": code.code,
+        }
+    )
 
 @csrf_exempt
 def reset_password(request):
-    data = json.loads(request.body)
+    data = json.loads(request.body or "{}")
+    serializer = ResetPasswordSerializer(data=data)
+    if not serializer.is_valid():
+        return JsonResponse(serializer.errors, status=400)
+    user = find_user_for_password_reset(serializer.validated_data)
+    otp = EmailVerificationCode.objects.filter(
+        user=user,
+        code=serializer.validated_data["code"],
+        is_used=False,
+        expires_at__gte=timezone.now(),
+    ).first()
+    if not otp:
+        return JsonResponse({"error": "Invalid or expired code"}, status=400)
 
-    username = data.get("username")
-    code = data.get("code")
-    new_password = data.get("new_password")
-
-    try:
-        user = User.objects.get(username=username)
-        otp = EmailVerificationCode.objects.filter(
-            user=user,
-            code=code,
-            is_used=False
-        ).latest("created_at")
-    except:
-        return JsonResponse({"error": "Invalid code"}, status=400)
-
-    if otp.expires_at < timezone.now():
-        return JsonResponse({"error": "Code expired"}, status=400)
-
-    user.set_password(new_password)
-    user.save()
+    user.set_password(serializer.validated_data["new_password"])
+    user.save(update_fields=["password"])
 
     otp.is_used = True
-    otp.save()
+    otp.save(update_fields=["is_used"])
 
     return JsonResponse({"message": "Password reset successful"})
