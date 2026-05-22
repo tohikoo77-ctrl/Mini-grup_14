@@ -150,7 +150,7 @@ class ResendVerificationAPIView(APIView):
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 
-
+@extend_schema(tags=["auth-login"])
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
 
@@ -163,47 +163,48 @@ class LoginView(generics.GenericAPIView):
         if user:
             return Response({"message": "Login successful"})
         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
-
+    
+@extend_schema(tags=["users"])
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-
+@extend_schema(tags=["seller"])
 class SellerViewSet(ModelViewSet):
     queryset = Seller.objects.all()
     serializer_class = SellerSerializer
 
-
+@extend_schema(tags=["seller-wallet"])
 class SellerWalletViewSet(ModelViewSet):
     queryset = SellerWallet.objects.all()
     serializer_class = SellerWalletSerializer
 
-
+@extend_schema(tags=["client"])
 class ClientViewSet(ModelViewSet):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
 
-
+@extend_schema(tags=["cart"])
 class CartViewSet(ModelViewSet):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
-
+@extend_schema(tags=["favorite"])
 class FavoriteViewSet(ModelViewSet):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
 
-
+@extend_schema(tags=["tag"])
 class TagViewSet(ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
-
+@extend_schema(tags=["lead-status"])
 class LeadStatusViewSet(ModelViewSet):
     queryset = LeadStatus.objects.all()
     serializer_class = LeadStatusSerializer
 
-
+@extend_schema(tags=["seller-dashboard"])
 class SellerView(APIView):
     permission_classes = [IsSeller]
 
