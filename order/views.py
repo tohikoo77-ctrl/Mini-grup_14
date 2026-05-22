@@ -1,5 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema
 
 from .models import Order, OrderProduct, Address
 from .serializer import (
@@ -8,7 +9,7 @@ from .serializer import (
     AddressSerializer,
 )
 
-
+@extend_schema(tags=["orders"])
 class OrderViewSet(ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
@@ -22,7 +23,7 @@ class OrderViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(client=self.request.user)
 
-
+@extend_schema(tags=["order-products"])
 class OrderProductViewSet(ModelViewSet):
     serializer_class = OrderProductSerializer
     permission_classes = [IsAuthenticated]
@@ -30,7 +31,7 @@ class OrderProductViewSet(ModelViewSet):
     def get_queryset(self):
         return OrderProduct.objects.filter(order__client=self.request.user)
 
-
+@extend_schema(tags=["address"])
 class AddressViewSet(ModelViewSet):
     serializer_class = AddressSerializer
     permission_classes = [IsAuthenticated]
