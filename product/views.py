@@ -3,11 +3,13 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer
+from drf_spectacular.utils import extend_schema
 
 
 # =========================
 # CATEGORY VIEWSET
 # =========================
+@extend_schema(tags=["product-category"])
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -20,6 +22,7 @@ class CategoryViewSet(ModelViewSet):
 # =========================
 # PRODUCT VIEWSET (ADVANCED)
 # =========================
+@extend_schema(tags=["product-products"])
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.select_related("category").all()
     serializer_class = ProductSerializer
