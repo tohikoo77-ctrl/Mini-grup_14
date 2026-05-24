@@ -23,7 +23,8 @@ class OrderAdmin(admin.ModelAdmin):
     )
 
     search_fields = (
-        'client__username',
+        'client__user__username',
+        'client__phone_number',
         'addresses__address_name',
         'status',
     )

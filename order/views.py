@@ -1,6 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from drf_spectacular.utils import extend_schema
+from rest_framework.exceptions import PermissionDenied
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from .models import Order, OrderProduct, Address
 from .serializer import (
@@ -9,19 +10,29 @@ from .serializer import (
     AddressSerializer,
 )
 
+@extend_schema_view(
+    list=extend_schema(summary="List my orders"),
+    create=extend_schema(summary="Create order"),
+    retrieve=extend_schema(summary="Get order details"),
+    update=extend_schema(summary="Update order"),
+    partial_update=extend_schema(summary="Partially update order"),
+    destroy=extend_schema(summary="Delete order"),
+)
 @extend_schema(tags=["orders"])
 class OrderViewSet(ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return Order.objects.none()
         return Order.objects.filter(client__user=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(client=self.request.user.client)
-
-    def perform_create(self, serializer):
-        serializer.save(client=self.request.user)
+        client = getattr(self.request.user, "client", None)
+        if client is None:
+            raise PermissionDenied("Buyurtma yaratish uchun client profili kerak.")
+        serializer.save(client=client)
 
 @extend_schema(tags=["order-products"])
 class OrderProductViewSet(ModelViewSet):
@@ -29,7 +40,9 @@ class OrderProductViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return OrderProduct.objects.filter(order__client=self.request.user)
+        if not self.request.user.is_authenticated:
+            return OrderProduct.objects.none()
+        return OrderProduct.objects.filter(order__client__user=self.request.user)
 
 @extend_schema(tags=["address"])
 class AddressViewSet(ModelViewSet):
@@ -37,4 +50,6 @@ class AddressViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Address.objects.filter(order__client=self.request.user)
+        if not self.request.user.is_authenticated:
+            return Address.objects.none()
+        return Address.objects.filter(order__client__user=self.request.user)
