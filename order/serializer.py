@@ -50,7 +50,8 @@ class AddressSerializer(serializers.ModelSerializer):
 # ---------------------------
 class OrderSerializer(serializers.ModelSerializer):
     products = OrderProductSerializer(many=True, required=False)
-    address = AddressSerializer(required=False)
+    address = AddressSerializer(required=False, write_only=True)
+    addresses = AddressSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
@@ -64,6 +65,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'created_at',
             'products',
             'address',
+            'addresses',
         ]
         read_only_fields = ['id', 'client', 'created_at', 'total_price']
 

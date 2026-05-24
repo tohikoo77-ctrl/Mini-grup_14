@@ -157,23 +157,30 @@ SIMPLE_JWT = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Mini-grup_14 API',
-    'DESCRIPTION': 'API documentation for Mini-grup_14 project',
+    'DESCRIPTION': 'Professional REST API documentation for users, products, discounts, orders and related resources.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
-    'SECURITY': [
-        {
-            'Bearer': {
-                'type': 'apiKey',
-                'name': 'Authorization',
-                'in': 'header',
-            }
-        }
-    ],
-    'SECURITY_REQUIREMENTS': [
-        {
-            'Bearer': [],
-        }
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+        'filter': True,
+    },
+    'TAGS': [
+        {'name': 'auth-login', 'description': 'Authentication endpoints'},
+        {'name': 'users', 'description': 'User management'},
+        {'name': 'client', 'description': 'Client profiles'},
+        {'name': 'seller', 'description': 'Seller profiles'},
+        {'name': 'products', 'description': 'Product catalog'},
+        {'name': 'product-category', 'description': 'Product categories'},
+        {'name': 'brands', 'description': 'Product brands'},
+        {'name': 'discounts', 'description': 'Discount CRUD endpoints'},
+        {'name': 'orders', 'description': 'Order management'},
+        {'name': 'order-products', 'description': 'Products attached to orders'},
+        {'name': 'address', 'description': 'Order delivery addresses'},
+        {'name': 'cart', 'description': 'Shopping cart'},
+        {'name': 'favorite', 'description': 'Favorite products'},
     ],
 }
 
