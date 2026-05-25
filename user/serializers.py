@@ -2,6 +2,8 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import Cart, Client, Favorite, LeadStatus, Seller, SellerWallet, Tag
 
@@ -33,6 +35,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Phone must start with +")
         return value
 
+    def validate_email(self, value):
+        return value.lower()
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
     def create(self, validated_data):
         password = validated_data.pop("password")
         user = User(**validated_data)
@@ -53,6 +62,38 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Wrong username or password")
         data["user"] = user
         return data
+
+
+class VerifiedTokenObtainPairSerializer(TokenObtainPairSerializer):
+    default_error_messages = {
+        "no_active_account": "No active account found with the given credentials.",
+        "email_not_verified": "Email is not verified. Please verify your email first.",
+    }
+
+    def validate(self, attrs):
+        username = attrs.get(self.username_field)
+        password = attrs.get("password")
+
+        try:
+            user = User.objects.get(**{self.username_field: username})
+        except User.DoesNotExist:
+            raise AuthenticationFailed(
+                self.error_messages["no_active_account"],
+                "no_active_account",
+            )
+
+        if not user.check_password(password):
+            raise AuthenticationFailed(
+                self.error_messages["no_active_account"],
+                "no_active_account",
+            )
+        if not user.is_verified:
+            raise AuthenticationFailed(
+                self.error_messages["email_not_verified"],
+                "email_not_verified",
+            )
+
+        return super().validate(attrs)
 
 
 class VerifyCodeSerializer(serializers.Serializer):

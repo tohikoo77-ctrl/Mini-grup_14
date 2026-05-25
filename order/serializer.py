@@ -10,19 +10,24 @@ from .models import Order, OrderProduct, Address
 # ORDER PRODUCT
 # ---------------------------
 class OrderProductSerializer(serializers.ModelSerializer):
+    order = serializers.PrimaryKeyRelatedField(
+        queryset=Order.objects.all(),
+        required=False,
+    )
+
     class Meta:
         model = OrderProduct
-        fields = ['id', 'product', 'quantity', 'price']
+        fields = ['id', 'order', 'product', 'quantity', 'price']
 
     def validate(self, attrs):
         quantity = attrs.get('quantity', 0)
         price = attrs.get('price', 0)
 
         if quantity <= 0:
-            raise ValidationError({"quantity": "Quantity 0 dan katta bo‘lishi kerak"})
+            raise ValidationError({"quantity": "Quantity 0 dan katta bo'lishi kerak"})
 
         if price <= 0:
-            raise ValidationError({"price": "Price 0 dan katta bo‘lishi kerak"})
+            raise ValidationError({"price": "Price 0 dan katta bo'lishi kerak"})
 
         return attrs
 
@@ -31,10 +36,16 @@ class OrderProductSerializer(serializers.ModelSerializer):
 # ADDRESS
 # ---------------------------
 class AddressSerializer(serializers.ModelSerializer):
+    order = serializers.PrimaryKeyRelatedField(
+        queryset=Order.objects.all(),
+        required=False,
+    )
+
     class Meta:
         model = Address
         fields = [
             'id',
+            'order',
             'in_tashkent',
             'address_name',
             'longitude',
@@ -119,10 +130,13 @@ class OrderSerializer(serializers.ModelSerializer):
 
         # update address
         if address_data:
-            Address.objects.update_or_create(
-                order=instance,
-                defaults=address_data
-            )
+            address = instance.addresses.first()
+            if address:
+                for attr, value in address_data.items():
+                    setattr(address, attr, value)
+                address.save()
+            else:
+                Address.objects.create(order=instance, **address_data)
 
         instance.save()
         return instance

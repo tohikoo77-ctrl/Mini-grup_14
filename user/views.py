@@ -55,7 +55,7 @@ def send_verification_email(user, code):
         message,
         getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
         [user.email],
-        fail_silently=True,
+        fail_silently=getattr(settings, "EMAIL_FAIL_SILENTLY", False),
     )
 
 
@@ -78,14 +78,14 @@ class RegisterAPIView(APIView):
         verification = EmailVerificationCode.objects.create(user=user)
         send_verification_email(user, verification.code)
 
-        return Response(
-            {
-                "detail": "Registered successfully. Check your email for the verification code.",
-                "email": user.email,
-                "verification_code": verification.code,
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        data = {
+            "detail": "Registered successfully. Check your email for the verification code.",
+            "email": user.email,
+        }
+        if settings.DEBUG:
+            data["debug_verification_code"] = verification.code
+
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 class VerifyCodeAPIView(APIView):
@@ -150,14 +150,14 @@ class ResendVerificationAPIView(APIView):
         verification = EmailVerificationCode.objects.create(user=user)
         send_verification_email(user, verification.code)
 
-        return Response(
-            {
-                "detail": "A new verification code was sent to your email.",
-                "email": user.email,
-                "verification_code": verification.code,
-            },
-            status=status.HTTP_200_OK,
-        )
+        data = {
+            "detail": "A new verification code was sent to your email.",
+            "email": user.email,
+        }
+        if settings.DEBUG:
+            data["debug_verification_code"] = verification.code
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class UserProfileAPIView(APIView):
@@ -264,7 +264,11 @@ class ResetPasswordAPIView(APIView):
             )
 
         user.set_password(serializer.validated_data["new_password"])
-        user.save(update_fields=["password"])
+        if not user.is_active:
+            user.is_active = True
+        if not user.is_verified:
+            user.is_verified = True
+        user.save(update_fields=["password", "is_active", "is_verified"])
 
         verification.is_used = True
         verification.save(update_fields=["is_used"])
