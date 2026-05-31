@@ -28,6 +28,7 @@ class Product(models.Model):
     sku = models.CharField(max_length=100, null=True, blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2)
     description = models.TextField(blank=True)
+    image = models.ImageField(upload_to="product/", blank=True, null=True)
 
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, null=True, blank=True)
