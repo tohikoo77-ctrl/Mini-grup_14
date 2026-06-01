@@ -29,7 +29,6 @@ class Product(models.Model):
     
 class Supplier(models.Model):
     name = models.CharField(max_length=255)
-    # boshqa maydonlar...
 
     def __str__(self):
         return self.name
