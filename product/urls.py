@@ -1,5 +1,4 @@
-
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import BrandViewSet, CategoryViewSet, DiscountViewSet, ProductViewSet
@@ -12,5 +11,4 @@ router.register(r"discounts", DiscountViewSet, basename="discount")
 
 urlpatterns = [
     path("", include(router.urls)),
-    
 ]

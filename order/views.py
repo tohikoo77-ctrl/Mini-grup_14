@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from .models import Order, OrderProduct, Address
@@ -44,6 +44,20 @@ class OrderProductViewSet(ModelViewSet):
             return OrderProduct.objects.none()
         return OrderProduct.objects.filter(order__client__user=self.request.user)
 
+    def perform_create(self, serializer):
+        order = serializer.validated_data.get("order")
+        if order is None:
+            raise ValidationError({"order": "Order ID is required."})
+        if order.client.user != self.request.user:
+            raise PermissionDenied("You can add products only to your own orders.")
+        serializer.save()
+
+    def perform_update(self, serializer):
+        order = serializer.validated_data.get("order", serializer.instance.order)
+        if order.client.user != self.request.user:
+            raise PermissionDenied("You can update products only on your own orders.")
+        serializer.save()
+
 @extend_schema(tags=["address"])
 class AddressViewSet(ModelViewSet):
     serializer_class = AddressSerializer
@@ -53,3 +67,17 @@ class AddressViewSet(ModelViewSet):
         if not self.request.user.is_authenticated:
             return Address.objects.none()
         return Address.objects.filter(order__client__user=self.request.user)
+
+    def perform_create(self, serializer):
+        order = serializer.validated_data.get("order")
+        if order is None:
+            raise ValidationError({"order": "Order ID is required."})
+        if order.client.user != self.request.user:
+            raise PermissionDenied("You can add addresses only to your own orders.")
+        serializer.save()
+
+    def perform_update(self, serializer):
+        order = serializer.validated_data.get("order", serializer.instance.order)
+        if order.client.user != self.request.user:
+            raise PermissionDenied("You can update addresses only on your own orders.")
+        serializer.save()

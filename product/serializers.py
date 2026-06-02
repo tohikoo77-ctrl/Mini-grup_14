@@ -17,7 +17,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def validate_name(self, value):
         if len(value) < 2:
-            raise serializers.ValidationError("Kategoriya nomi kamida 2 ta harf bo‘lishi kerak.")
+            raise serializers.ValidationError("Kategoriya nomi kamida 2 ta harf bo'lishi kerak.")
         return value
 
 
@@ -65,12 +65,12 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def validate_name(self, value):
         if len(value) < 3:
-            raise serializers.ValidationError("Product nomi kamida 3 ta harf bo‘lishi kerak.")
+            raise serializers.ValidationError("Product nomi kamida 3 ta harf bo'lishi kerak.")
         return value
 
     def validate_price(self, value):
         if value <= 0:
-            raise serializers.ValidationError("Narx 0 dan katta bo‘lishi kerak.")
+            raise serializers.ValidationError("Narx 0 dan katta bo'lishi kerak.")
         return value
 
     def create(self, validated_data):
