@@ -201,18 +201,21 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = "__all__"
+        read_only_fields = ["user"]
 
 
 class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = "__all__"
+        read_only_fields = ["client"]
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fields = "__all__"
+        read_only_fields = ["client"]
 
 
 class TagSerializer(serializers.ModelSerializer):

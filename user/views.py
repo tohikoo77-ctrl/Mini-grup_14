@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, status
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -121,6 +122,9 @@ class VerifyCodeAPIView(APIView):
         user.is_verified = True
         user.is_active = True
         user.save()
+
+        if not Client.objects.filter(user=user).exists():
+            Client.objects.create(user=user, phone_number=user.phone_number)
 
         return Response(
             {"detail": "Email verified successfully. You can now log in."},
@@ -313,18 +317,50 @@ class SellerWalletViewSet(ModelViewSet):
 
 @extend_schema(tags=["client"])
 class ClientViewSet(ModelViewSet):
-    queryset = Client.objects.all()
     serializer_class = ClientSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Client.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        if Client.objects.filter(user=self.request.user).exists():
+            raise ValidationError("Bu foydalanuvchida allaqachon client profili mavjud.")
+        serializer.save(user=self.request.user)
 
 @extend_schema(tags=["cart"])
 class CartViewSet(ModelViewSet):
-    queryset = Cart.objects.all()
     serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        client = getattr(self.request.user, "client", None)
+        if client is None:
+            return Cart.objects.none()
+        return Cart.objects.filter(client=client)
+
+    def perform_create(self, serializer):
+        client = getattr(self.request.user, "client", None)
+        if client is None:
+            raise PermissionDenied("Savat uchun client profili kerak.")
+        serializer.save(client=client)
 
 @extend_schema(tags=["favorite"])
 class FavoriteViewSet(ModelViewSet):
-    queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        client = getattr(self.request.user, "client", None)
+        if client is None:
+            return Favorite.objects.none()
+        return Favorite.objects.filter(client=client)
+
+    def perform_create(self, serializer):
+        client = getattr(self.request.user, "client", None)
+        if client is None:
+            raise PermissionDenied("Sevimlilar uchun client profili kerak.")
+        serializer.save(client=client)
 
 @extend_schema(tags=["tag"])
 class TagViewSet(ModelViewSet):
