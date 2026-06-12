@@ -15,19 +15,16 @@ class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
+    region = serializers.CharField(max_length=100)
     password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
         model = User
         fields = [
-            "username",
             "email",
-            "password",
-            "first_name",
-            "last_name",
             "phone_number",
-            "role",
-            "date_of_birth",
+            "region",
+            "password",
         ]
 
     def validate_phone_number(self, value):
@@ -44,12 +41,23 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop("password")
+        validated_data["username"] = self._generate_username(validated_data["email"])
         user = User(**validated_data)
         user.set_password(password)
         user.is_active = False
         user.is_verified = False
         user.save()
         return user
+
+    @staticmethod
+    def _generate_username(email):
+        base = email.split("@")[0]
+        username = base
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base}{counter}"
+            counter += 1
+        return username
 
 
 class LoginSerializer(serializers.Serializer):
@@ -201,18 +209,21 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = "__all__"
+        read_only_fields = ["user"]
 
 
 class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = "__all__"
+        read_only_fields = ["client"]
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fields = "__all__"
+        read_only_fields = ["client"]
 
 
 class TagSerializer(serializers.ModelSerializer):

@@ -272,7 +272,6 @@ paths:
       - cart
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -300,7 +299,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -322,7 +320,6 @@ paths:
       - cart
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -355,7 +352,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -387,7 +383,6 @@ paths:
               $ref: '#/components/schemas/PatchedCartRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -408,7 +403,6 @@ paths:
       - cart
       security:
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
@@ -419,7 +413,6 @@ paths:
       - client
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -447,7 +440,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -462,14 +454,12 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this client.
+          type: string
         required: true
       tags:
       - client
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -483,8 +473,7 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this client.
+          type: string
         required: true
       tags:
       - client
@@ -502,7 +491,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -516,8 +504,7 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this client.
+          type: string
         required: true
       tags:
       - client
@@ -534,7 +521,6 @@ paths:
               $ref: '#/components/schemas/PatchedClientRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -548,14 +534,12 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this client.
+          type: string
         required: true
       tags:
       - client
       security:
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
@@ -566,7 +550,6 @@ paths:
       - favorite
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -594,7 +577,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -616,7 +598,6 @@ paths:
       - favorite
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -649,7 +630,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -681,7 +661,6 @@ paths:
               $ref: '#/components/schemas/PatchedFavoriteRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -702,7 +681,6 @@ paths:
       - favorite
       security:
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
@@ -2674,6 +2652,7 @@ components:
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
         client:
           type: integer
+          readOnly: true
         product:
           type: integer
           nullable: true
@@ -2693,13 +2672,10 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-        client:
-          type: integer
         product:
           type: integer
           nullable: true
       required:
-      - client
       - price
     Category:
       type: object
@@ -2747,6 +2723,7 @@ components:
           maxLength: 150
         user:
           type: integer
+          readOnly: true
       required:
       - id
       - phone_number
@@ -2772,11 +2749,8 @@ components:
           type: string
           nullable: true
           maxLength: 150
-        user:
-          type: integer
       required:
       - phone_number
-      - user
     Discount:
       type: object
       properties:
@@ -2875,6 +2849,7 @@ components:
           readOnly: true
         client:
           type: integer
+          readOnly: true
         product:
           type: integer
       required:
@@ -2884,12 +2859,9 @@ components:
     FavoriteRequest:
       type: object
       properties:
-        client:
-          type: integer
         product:
           type: integer
       required:
-      - client
       - product
     ForgetPasswordRequest:
       type: object
@@ -3094,8 +3066,6 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-        client:
-          type: integer
         product:
           type: integer
           nullable: true
@@ -3127,8 +3097,6 @@ components:
           type: string
           nullable: true
           maxLength: 150
-        user:
-          type: integer
     PatchedDiscountRequest:
       type: object
       properties:
@@ -3158,8 +3126,6 @@ components:
     PatchedFavoriteRequest:
       type: object
       properties:
-        client:
-          type: integer
         product:
           type: integer
     PatchedLeadStatusRequest:
@@ -3215,6 +3181,10 @@ components:
           maxLength: 100
         description:
           type: string
+        image:
+          type: string
+          format: binary
+          nullable: true
         price:
           type: string
           format: decimal
@@ -3278,10 +3248,9 @@ components:
         first_name:
           type: string
           minLength: 1
-          maxLength: 30
+          maxLength: 150
         last_name:
           type: string
-          minLength: 1
           maxLength: 30
         middle_name:
           type: string
@@ -3327,10 +3296,9 @@ components:
         first_name:
           type: string
           minLength: 1
-          maxLength: 30
+          maxLength: 150
         last_name:
           type: string
-          minLength: 1
           maxLength: 30
         middle_name:
           type: string
@@ -3344,6 +3312,9 @@ components:
           type: string
           minLength: 1
           maxLength: 13
+        region:
+          type: string
+          maxLength: 100
         role:
           $ref: '#/components/schemas/RoleEnum'
         date_of_birth:
@@ -3390,6 +3361,10 @@ components:
           maxLength: 100
         description:
           type: string
+        image:
+          type: string
+          format: uri
+          nullable: true
         price:
           type: string
           format: decimal
@@ -3435,6 +3410,10 @@ components:
           maxLength: 100
         description:
           type: string
+        image:
+          type: string
+          format: binary
+          nullable: true
         price:
           type: string
           format: decimal
@@ -3453,43 +3432,27 @@ components:
     RegisterRequest:
       type: object
       properties:
-        username:
-          type: string
-          minLength: 1
-          maxLength: 150
         email:
           type: string
           format: email
           minLength: 1
-        password:
-          type: string
-          writeOnly: true
-          minLength: 8
-        first_name:
-          type: string
-          minLength: 1
-          maxLength: 30
-        last_name:
-          type: string
-          minLength: 1
-          maxLength: 30
         phone_number:
           type: string
           minLength: 1
           maxLength: 13
-        role:
-          $ref: '#/components/schemas/RoleEnum'
-        date_of_birth:
+        region:
           type: string
-          format: date
-          nullable: true
+          minLength: 1
+          maxLength: 100
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
       required:
       - email
-      - first_name
-      - last_name
       - password
       - phone_number
-      - username
+      - region
     ResendVerificationRequest:
       type: object
       properties:
@@ -3724,7 +3687,7 @@ components:
           format: date-time
         first_name:
           type: string
-          maxLength: 30
+          maxLength: 150
         last_name:
           type: string
           maxLength: 30
@@ -3738,6 +3701,9 @@ components:
         phone_number:
           type: string
           maxLength: 13
+        region:
+          type: string
+          maxLength: 100
         role:
           $ref: '#/components/schemas/RoleEnum'
         date_of_birth:
@@ -3769,7 +3735,6 @@ components:
       - created_at
       - first_name
       - id
-      - last_name
       - phone_number
       - updated_at
       - username
@@ -3789,7 +3754,7 @@ components:
           maxLength: 254
         first_name:
           type: string
-          maxLength: 30
+          maxLength: 150
         last_name:
           type: string
           maxLength: 30
@@ -3815,7 +3780,6 @@ components:
       - first_name
       - id
       - is_verified
-      - last_name
       - phone_number
       - role
       - username
@@ -3851,10 +3815,9 @@ components:
         first_name:
           type: string
           minLength: 1
-          maxLength: 30
+          maxLength: 150
         last_name:
           type: string
-          minLength: 1
           maxLength: 30
         middle_name:
           type: string
@@ -3868,6 +3831,9 @@ components:
           type: string
           minLength: 1
           maxLength: 13
+        region:
+          type: string
+          maxLength: 100
         role:
           $ref: '#/components/schemas/RoleEnum'
         date_of_birth:
@@ -3889,7 +3855,6 @@ components:
           description: Specific permissions for this user.
       required:
       - first_name
-      - last_name
       - phone_number
       - username
     VerifiedTokenObtainPair:
