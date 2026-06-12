@@ -448,10 +448,10 @@
                                                                  ],
                                                       "body":  {
                                                                    "mode":  "raw",
-                                                                   "raw":  "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"first_name\": \"Postman\",\n  \"last_name\": \"Tester\",\n  \"phone_number\": \"+998901234567\",\n  \"role\": \"user\",\n  \"date_of_birth\": \"2000-01-01\"\n}"
+                                                                   "raw":  "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"phone_number\": \"+998901234567\",\n  \"region\": \"Tashkent\"\n}"
                                                                },
                                                       "url":  "{{base_url}}/api/auth/register/",
-                                                      "description":  "### Purpose\nRegister a new account and send an email verification code.\n\n### Endpoint\n- Method: POST\n- URL: {{base_url}}/api/auth/register/\n- Auth required: No\n\n### Request Fields\nBody fields:\n- username: unique login name.\n- email: unique email address; lower-cased by API.\n- password: minimum 8 chars and validated by Django password validators.\n- first_name: required user first name.\n- last_name: required user last name.\n- phone_number: required, must start with +.\n- role: user, seller or admin.\n- date_of_birth: optional date in YYYY-MM-DD format.\n\n### Response\nExpected response: 201 Created for CRUD creates or 200 OK for auth actions.\n\n### Postman Variables\nSaved collection variables: {{verification_code}} when debug/reset code is present."
+                                                      "description":  "### Purpose\nRegister a new account and send an email verification code.\n\n### Endpoint\n- Method: POST\n- URL: {{base_url}}/api/auth/register/\n- Auth required: No\n\n### Request Fields\nBody fields:\n- email: unique email address; lower-cased by API. Username is generated automatically from the email.\n- password: minimum 8 chars and validated by Django password validators.\n- phone_number: required, must start with +.\n- region: required user region.\n\n### Response\nExpected response: 201 Created for CRUD creates or 200 OK for auth actions.\n\n### Postman Variables\nSaved collection variables: {{verification_code}} when debug/reset code is present."
                                                   },
                                       "event":  [
                                                     {
@@ -480,7 +480,7 @@
                                                                                               ],
                                                                                    "body":  {
                                                                                                 "mode":  "raw",
-                                                                                                "raw":  "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"first_name\": \"Postman\",\n  \"last_name\": \"Tester\",\n  \"phone_number\": \"+998901234567\",\n  \"role\": \"user\",\n  \"date_of_birth\": \"2000-01-01\"\n}"
+                                                                                                "raw":  "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"phone_number\": \"+998901234567\",\n  \"region\": \"Tashkent\"\n}"
                                                                                             },
                                                                                    "url":  "{{base_url}}/api/auth/register/"
                                                                                },
@@ -509,7 +509,7 @@
                                                                                               ],
                                                                                    "body":  {
                                                                                                 "mode":  "raw",
-                                                                                                "raw":  "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"first_name\": \"Postman\",\n  \"last_name\": \"Tester\",\n  \"phone_number\": \"+998901234567\",\n  \"role\": \"user\",\n  \"date_of_birth\": \"2000-01-01\"\n}"
+                                                                                                "raw":  "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"phone_number\": \"+998901234567\",\n  \"region\": \"Tashkent\"\n}"
                                                                                             },
                                                                                    "url":  "{{base_url}}/api/auth/register/"
                                                                                },
@@ -523,7 +523,7 @@
                                                            "cookie":  [
 
                                                                       ],
-                                                           "body":  "{\r\n    \"username\":  [\r\n                     \"A user with that username already exists.\"\r\n                 ],\r\n    \"phone_number\":  [\r\n                         \"Phone must start with +\"\r\n                     ],\r\n    \"email\":  [\r\n                  \"This field must be unique.\"\r\n              ],\r\n    \"password\":  [\r\n                     \"This password is too short. It must contain at least 8 characters.\"\r\n                 ]\r\n}"
+                                                           "body":  "{\r\n    \"phone_number\":  [\r\n                         \"Phone must start with +\"\r\n                     ],\r\n    \"email\":  [\r\n                  \"This field must be unique.\"\r\n              ],\r\n    \"region\":  [\r\n                  \"This field is required.\"\r\n              ],\r\n    \"password\":  [\r\n                     \"This password is too short. It must contain at least 8 characters.\"\r\n                 ]\r\n}"
                                                        }
                                                    ]
                                   },

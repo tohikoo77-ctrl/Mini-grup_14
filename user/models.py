@@ -16,12 +16,13 @@ class User(AbstractUser):
         ("admin", "Admin"),
     )
 
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=30, blank=True, default="")
     middle_name = models.CharField(max_length=30, blank=True, null=True)
 
     username = models.CharField(max_length=150, unique=True)
     phone_number = models.CharField(max_length=13)
+    region = models.CharField(max_length=100, blank=True, default="")
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="user")
     date_of_birth = models.DateField(blank=True, null=True)
 
@@ -33,6 +34,9 @@ class User(AbstractUser):
     def clean(self):
         if not self.phone_number.startswith("+"):
             raise ValidationError("Phone must start with +")
+        
+        if not self.region:
+            raise ValidationError("Region is required.")
 
 class EmailVerificationCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="verification_codes")
