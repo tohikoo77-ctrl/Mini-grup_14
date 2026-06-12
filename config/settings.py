@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     "product",
     "user",
-    "order",]
+    "order",
+    "news",]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -181,6 +182,8 @@ SPECTACULAR_SETTINGS = {
         {'name': 'address', 'description': 'Order delivery addresses'},
         {'name': 'cart', 'description': 'Shopping cart'},
         {'name': 'favorite', 'description': 'Favorite products'},
+        {'name': 'news', 'description': 'News articles'},
+        {'name': 'news-category', 'description': 'News categories (rubrics)'},
     ],
 }
 
