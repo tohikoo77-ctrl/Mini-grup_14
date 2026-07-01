@@ -34,9 +34,6 @@ class User(AbstractUser):
     def clean(self):
         if not self.phone_number.startswith("+"):
             raise ValidationError("Phone must start with +")
-        
-        if not self.region:
-            raise ValidationError("Region is required.")
 
 class EmailVerificationCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="verification_codes")

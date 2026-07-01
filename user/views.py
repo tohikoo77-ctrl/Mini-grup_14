@@ -4,8 +4,9 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -66,6 +67,7 @@ def find_user_for_password_reset(validated_data):
     return get_object_or_404(User, username=validated_data["username"])
 
 
+@extend_schema(tags=["auth-login"])
 class RegisterAPIView(APIView):
     @extend_schema(
         request=RegisterSerializer,
@@ -76,19 +78,21 @@ class RegisterAPIView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        verification = EmailVerificationCode.objects.create(user=user)
-        send_verification_email(user, verification.code)
 
-        data = {
-            "detail": "Registered successfully. Check your email for the verification code.",
-            "email": user.email,
-        }
-        if settings.DEBUG:
-            data["debug_verification_code"] = verification.code
+        if not Client.objects.filter(user=user).exists():
+            Client.objects.create(user=user, phone_number=user.phone_number)
 
-        return Response(data, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "detail": "Registered successfully. You can now log in.",
+                "email": user.email,
+                "username": user.username,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
+@extend_schema(tags=["auth-login"])
 class VerifyCodeAPIView(APIView):
     @extend_schema(
         request=VerifyCodeSerializer,
@@ -132,6 +136,7 @@ class VerifyCodeAPIView(APIView):
         )
 
 
+@extend_schema(tags=["auth-login"])
 class ResendVerificationAPIView(APIView):
     @extend_schema(
         request=ResendVerificationSerializer,
@@ -164,6 +169,7 @@ class ResendVerificationAPIView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["auth-login"])
 class UserProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -197,6 +203,7 @@ class UserProfileAPIView(APIView):
         )
 
 
+@extend_schema(tags=["auth-login"])
 class PasswordUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -218,6 +225,7 @@ class PasswordUpdateAPIView(APIView):
         )
 
 
+@extend_schema(tags=["auth-login"])
 class ForgetPasswordAPIView(APIView):
     @extend_schema(
         request=ForgetPasswordSerializer,
@@ -243,6 +251,7 @@ class ForgetPasswordAPIView(APIView):
         )
 
 
+@extend_schema(tags=["auth-login"])
 class ResetPasswordAPIView(APIView):
     @extend_schema(
         request=ResetPasswordSerializer,
@@ -317,6 +326,7 @@ class SellerWalletViewSet(ModelViewSet):
 
 @extend_schema(tags=["client"])
 class ClientViewSet(ModelViewSet):
+    queryset = Client.objects.all()
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated]
 
@@ -383,41 +393,54 @@ class SellerView(APIView):
     def get(self, request):
         return Response({"message": "Only sellers can see this"})
     
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
-
-@csrf_exempt
+@extend_schema(
+    tags=["auth-login"],
+    request=LoginSerializer,
+    responses={
+        200: {"description": "Login successful"},
+        400: {"description": "Invalid credentials"},
+    },
+    description="Legacy session-based login endpoint.",
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
 def login_view(request):
-    data = json.loads(request.body)
+    serializer = LoginSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
-    username = data.get("username")
-    password = data.get("password")
+    login(request, serializer.validated_data["user"])
+    return Response({"message": "Login success"})
 
-    user = authenticate(username=username, password=password)
 
-    if user is not None:
-        login(request, user)
-        return JsonResponse({"message": "Login success"})
-    else:
-        return JsonResponse({"error": "Invalid credentials"}, status=400)
-    
-@csrf_exempt
+@extend_schema(
+    tags=["auth-login"],
+    request=None,
+    responses={200: {"description": "Logged out successfully"}},
+    description="Legacy session-based logout endpoint.",
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
 def logout_view(request):
     logout(request)
-    return JsonResponse({"message": "Logged out"})
+    return Response({"message": "Logged out"})
 
 
-@csrf_exempt
+@extend_schema(
+    tags=["auth-login"],
+    request=ForgetPasswordSerializer,
+    responses={200: {"description": "Password reset code sent"}},
+    description="Legacy alias for /api/auth/forget-password/.",
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
 def forget_password(request):
-    data = json.loads(request.body or "{}")
-    serializer = ForgetPasswordSerializer(data=data)
-    if not serializer.is_valid():
-        return JsonResponse(serializer.errors, status=400)
+    serializer = ForgetPasswordSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
     user = find_user_for_password_reset(serializer.validated_data)
     code = EmailVerificationCode.objects.create(user=user)
     send_verification_email(user, code.code)
-    return JsonResponse(
+    return Response(
         {
             "message": "Password reset code sent",
             "username": user.username,
@@ -426,12 +449,21 @@ def forget_password(request):
         }
     )
 
-@csrf_exempt
+
+@extend_schema(
+    tags=["auth-login"],
+    request=ResetPasswordSerializer,
+    responses={
+        200: {"description": "Password reset successfully"},
+        400: {"description": "Invalid or expired code"},
+    },
+    description="Legacy alias for /api/auth/reset-password/.",
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
 def reset_password(request):
-    data = json.loads(request.body or "{}")
-    serializer = ResetPasswordSerializer(data=data)
-    if not serializer.is_valid():
-        return JsonResponse(serializer.errors, status=400)
+    serializer = ResetPasswordSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
     user = find_user_for_password_reset(serializer.validated_data)
     otp = EmailVerificationCode.objects.filter(
         user=user,
@@ -440,7 +472,7 @@ def reset_password(request):
         expires_at__gte=timezone.now(),
     ).first()
     if not otp:
-        return JsonResponse({"error": "Invalid or expired code"}, status=400)
+        return Response({"error": "Invalid or expired code"}, status=status.HTTP_400_BAD_REQUEST)
 
     user.set_password(serializer.validated_data["new_password"])
     user.save(update_fields=["password"])
@@ -448,4 +480,4 @@ def reset_password(request):
     otp.is_used = True
     otp.save(update_fields=["is_used"])
 
-    return JsonResponse({"message": "Password reset successful"})
+    return Response({"message": "Password reset successful"})

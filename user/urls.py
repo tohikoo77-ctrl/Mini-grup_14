@@ -1,4 +1,5 @@
 from django.urls import include, path
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -23,6 +24,14 @@ from .views import (
     logout_view,
     reset_password,
 )
+
+TokenObtainPairView = extend_schema_view(
+    post=extend_schema(tags=["auth-login"], summary="Obtain JWT access/refresh tokens"),
+)(TokenObtainPairView)
+
+TokenRefreshView = extend_schema_view(
+    post=extend_schema(tags=["auth-login"], summary="Refresh JWT access token"),
+)(TokenRefreshView)
 
 router = DefaultRouter()
 
