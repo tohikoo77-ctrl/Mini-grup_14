@@ -15,7 +15,6 @@ class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
-    region = serializers.CharField(max_length=100)
     password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
@@ -23,7 +22,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = [
             "email",
             "phone_number",
-            "region",
             "password",
         ]
 
@@ -44,8 +42,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data["username"] = self._generate_username(validated_data["email"])
         user = User(**validated_data)
         user.set_password(password)
-        user.is_active = False
-        user.is_verified = False
+        user.is_active = True
+        user.is_verified = True
         user.save()
         return user
 
@@ -94,11 +92,6 @@ class VerifiedTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise AuthenticationFailed(
                 self.error_messages["no_active_account"],
                 "no_active_account",
-            )
-        if not user.is_verified:
-            raise AuthenticationFailed(
-                self.error_messages["email_not_verified"],
-                "email_not_verified",
             )
 
         return super().validate(attrs)

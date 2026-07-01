@@ -8,13 +8,8 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
 SECRET_KEY = env("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 if DEBUG == "False":
     DEBUG = False
@@ -173,6 +168,10 @@ SPECTACULAR_SETTINGS = {
         {'name': 'users', 'description': 'User management'},
         {'name': 'client', 'description': 'Client profiles'},
         {'name': 'seller', 'description': 'Seller profiles'},
+        {'name': 'seller-wallet', 'description': 'Seller wallet balances'},
+        {'name': 'seller-dashboard', 'description': 'Seller-only dashboard endpoints'},
+        {'name': 'tag', 'description': 'Lead/contact tags'},
+        {'name': 'lead-status', 'description': 'Lead status options'},
         {'name': 'products', 'description': 'Product catalog'},
         {'name': 'product-category', 'description': 'Product categories'},
         {'name': 'brands', 'description': 'Product brands'},
